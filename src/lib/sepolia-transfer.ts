@@ -22,7 +22,7 @@ export async function sendUSDCOnSepolia(
 ): Promise<{ txHash: string; explorerUrl: string }> {
     // Normalize checksum (ethers v6 is strict about checksums)
     const to = ethers.getAddress(toRaw.toLowerCase());
-    const privateKey = process.env.PINION_PRIVATE_KEY;
+    const privateKey = (process.env.PINION_PRIVATE_KEY || "").trim();
     if (!privateKey) {
         throw new Error("PINION_PRIVATE_KEY not set");
     }
@@ -60,10 +60,11 @@ export async function sendUSDCOnSepolia(
 /**
  * Get USDC + ETH balance on Base Sepolia.
  */
-export async function getSepoliaBalance(address: string): Promise<{
+export async function getSepoliaBalance(addressRaw: string): Promise<{
     ETH: string;
     USDC: string;
 }> {
+    const address = addressRaw.trim();
     const provider = new ethers.JsonRpcProvider(BASE_SEPOLIA_RPC, BASE_SEPOLIA_CHAIN_ID);
     const usdc = new ethers.Contract(USDC_SEPOLIA_ADDRESS, ERC20_ABI, provider);
 

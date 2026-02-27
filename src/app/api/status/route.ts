@@ -5,7 +5,7 @@ import { getSepoliaBalance } from "@/lib/sepolia-transfer";
 // GET /api/status — Return agent wallet status
 export async function GET() {
     try {
-        const walletAddress = process.env.AGENT_WALLET_ADDRESS || "";
+        const walletAddress = (process.env.AGENT_WALLET_ADDRESS || "").trim();
 
         let balance = null;
         let ethPrice = null;
