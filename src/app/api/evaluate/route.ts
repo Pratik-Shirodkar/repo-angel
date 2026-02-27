@@ -24,7 +24,9 @@ PAYOUT PRICING RULES:
 - Price based on complexity * impact * quality. Be precise with cents.
 
 STRICT RULES:
-- Hardcoded API keys or secrets = automatic FAIL, $0
+- ONLY literal hardcoded secrets (e.g. API_KEY = "sk_live_abc123") = automatic FAIL, $0
+- Reading secrets from environment variables (process.env.SECRET) is CORRECT and SECURE — do NOT penalize this
+- Variable names containing 'SECRET' or 'KEY' that reference env vars are FINE
 - Excessive console.log debugging = FAIL
 - @ts-ignore without justification = -10 points
 - Security fixes get bonus points AND higher payouts
@@ -63,7 +65,8 @@ function deepHeuristicEval(pr: MockPR): { ai: Evaluation["ai"]; payout: string; 
     const lineCount = pr.additions + pr.deletions;
     const hasStatusCodes = /\.status\(\d{3}\)|res\.json/.test(d);
 
-    const hasSecrets = /API_KEY|sk_live|sk_test|password\s*=\s*['"]|SECRET/.test(d);
+    // Only match LITERAL hardcoded secrets, not env var references like process.env.JWT_SECRET
+    const hasSecrets = /sk_live_[a-zA-Z0-9]|sk_test_[a-zA-Z0-9]|password\s*=\s*['"][^'"]{4,}|['"]AKIA[A-Z0-9]{16}['"]/.test(d);
     const hasInputValidation = /sanitize|validate|escape|\.replace\(|pattern|regex|DANGEROUS/i.test(d);
     const hasSecurityFix = /XSS|CSRF|injection|vulnerability|sanitize/i.test(pr.title + d);
 
@@ -288,7 +291,8 @@ Respond with ONLY the JSON evaluation object.`;
     }
 
     // ── SECURITY AUDIT (M2M Payment) ──
-    if (requiresSecurityAudit && aiResult.verdict === "PASS") {
+    // M2M: Always hire Security Oracle for high-risk files (regardless of verdict)
+    if (requiresSecurityAudit) {
         securityAuditCost = "1.00";
         aiResult.reasoning = `🔒 HIGH-RISK: Security audit triggered. Hired Security Oracle Agent ($${securityAuditCost} USDC). ${aiResult.reasoning}`;
         aiResult.highlights = ["M2M: Security Oracle Agent contracted via x402", ...aiResult.highlights].slice(0, 5);
